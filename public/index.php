@@ -2,6 +2,7 @@
 
 use Arris\AppLogger;
 use Arris\AppRouter;
+use Arris\Exceptions\AppRouterException;
 
 require_once dirname(__DIR__, 1) . '/vendor/autoload.php';
 
@@ -29,20 +30,25 @@ $app->add('sheets', [
     ],
 ]);
 
-AppLogger::init('EcoParser', bin2hex(random_bytes(8)), [
-    'default_logfile_path'      => dirname(__DIR__, 1) . '/logs/',
-    'default_logfile_prefix'    => '/' . date_format(date_create(), 'Y-m-d') . '__'
-] );
-AppRouter::init(AppLogger::addScope('router'));
-AppRouter::setDefaultNamespace('\EcoParser');
+try {
+    AppLogger::init('EcoParser', bin2hex(random_bytes(8)), [
+        'default_logfile_path'      => dirname(__DIR__, 1) . '/logs/',
+        'default_logfile_prefix'    => '/' . date_format(date_create(), 'Y-m-d') . '__'
+    ] );
+    AppRouter::init(AppLogger::addScope('router'));
+    AppRouter::setDefaultNamespace('\EcoParser');
 
-AppRouter::get('/', 'API@about');
-AppRouter::get('/getTableData', 'API@error');
-AppRouter::get('/getTableData/{id}', 'API@getTableData');
-AppRouter::get('/forceUpdate', 'API@forceUpdate');
-AppRouter::get('/getStats', 'API@getStats');
+    AppRouter::get('/', 'API@about');
+    AppRouter::get('/getTableData', 'API@getTableData');
+    AppRouter::get('/getTableData/{id}', 'API@getTableData');
+    AppRouter::get('/forceUpdate', 'API@forceUpdate');
+    AppRouter::get('/getStats', 'API@getStats');
 
-AppRouter::dispatch();
+    AppRouter::dispatch();
+
+} catch (AppRouterException $e) {
+    (new \EcoParser\API())->error($e->getMessage());
+}
 
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode($app->get('json') , JSON_PRETTY_PRINT);

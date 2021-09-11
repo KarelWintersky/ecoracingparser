@@ -44,7 +44,7 @@ class API
     /**
      * API Endpoint /
      *
-     * @return array|string[]
+     * @return void
      */
     public function about()
     {
@@ -54,22 +54,32 @@ class API
     /**
      * Error
      *
-     * @return array
+     * @param string $message
+     * @return void
      */
-    public function error()
+    public function error($message = '')
     {
-        say(array_merge($this->response, [
-            'status'    =>  'error',
-            'state'     =>  'No table id given'
-        ]));
+        $this->response['state'] = 'Error';
+        if (!empty($message)) {
+            $this->response['message'] = $message;
+        }
+
+        say($this->response);
     }
 
     /**
      * Получить данные таблицы по NAME
      *
      */
-    public function getTableData(string $id)
+    public function getTableData(string $id = null)
     {
+        if (is_null($id)) {
+            $this->error('Incorrect datasheet name');
+            return false;
+        }
+
+
+
         say([
             'id'    =>  $id
         ]);
@@ -80,6 +90,9 @@ class API
      */
     public function forceUpdate()
     {
+        say([
+            'status'    =>  'ok'
+        ]);
 
     }
 
