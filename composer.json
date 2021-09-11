@@ -1,0 +1,33 @@
+{
+    "name": "karelwintersky/ecoracingparser",
+    "description": "Google Tables ECO Racing DATA Parser",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Karel Wintersky",
+            "email": "karel.wintersky@yandex.ru"
+        }
+    ],
+    "require": {
+        "php": ">=7.3",
+        "ext-json": "*",
+        "ext-pdo": "*",
+        "ext-mbstring": "*",
+        "vlucas/phpdotenv": "^3.3",
+        "digitalstars/google-sheets": "^1.0",
+        "karelwintersky/arris": "^1.65",
+        "karelwintersky/arris.helpers": "^0.4.0",
+        "psr/log": "^1.1",
+        "spatie/regex": "^1.4"
+    }
+    ,
+    "require-dev": {
+        "roave/security-advisories": "dev-latest"
+    },
+    "autoload": {
+        "psr-4": {
+            "EcoParser\\": "engine/"
+        }
+    }
+}
