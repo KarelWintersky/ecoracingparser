@@ -28,6 +28,9 @@
     "autoload": {
         "psr-4": {
             "EcoParser\\": "engine/"
-        }
+        },
+        "files": [
+            "engine/helpers.php"
+        ]
     }
 }
