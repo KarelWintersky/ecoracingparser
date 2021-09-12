@@ -29,6 +29,11 @@ $app->add('sheets', [
         'title'             =>  'Экогонка 2021 физлиц'
     ],
 ]);
+$app->add('config', [
+    'google_api.config.path'    =>  dirname(__DIR__, 1) . '/config/ecoparser-384f4c127530.json',
+]);
+
+// $app('sheets', 'xxx');
 
 try {
     AppLogger::init('EcoParser', bin2hex(random_bytes(8)), [
@@ -40,7 +45,7 @@ try {
 
     AppRouter::get('/', 'API@about');
     AppRouter::get('/getTableData', 'API@getTableData');
-    AppRouter::get('/getTableData/{id}', 'API@getTableData');
+    AppRouter::get('/getTableData/{name}', 'API@getTableData');
     AppRouter::get('/forceUpdate', 'API@forceUpdate');
     AppRouter::get('/getStats', 'API@getStats');
 
