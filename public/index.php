@@ -24,6 +24,11 @@ try {
 
     $app->add('config', []);
 
+    AppLogger::init('EcoParser', bin2hex(random_bytes(8)), [
+        'default_logfile_path'      => dirname(__DIR__, 1) . '/logs/',
+        'default_logfile_prefix'    => '/' . date_format(date_create(), 'Y-m-d') . '__'
+    ] );
+
     // $app('sheets', 'xxx');
 
     DB::init(NULL, [
@@ -37,10 +42,6 @@ try {
     ], AppLogger::scope('pdo'));
     $app->set('pdo', DB::getConnection());
 
-    AppLogger::init('EcoParser', bin2hex(random_bytes(8)), [
-        'default_logfile_path'      => dirname(__DIR__, 1) . '/logs/',
-        'default_logfile_prefix'    => '/' . date_format(date_create(), 'Y-m-d') . '__'
-    ] );
     AppRouter::init(AppLogger::addScope('router'));
     AppRouter::setDefaultNamespace('\EcoParser');
 

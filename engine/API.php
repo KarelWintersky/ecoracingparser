@@ -133,6 +133,11 @@ class API
      */
     public function forceUpdate()
     {
+        if (isset($_REQUEST['mode']) && $_REQUEST['mode'] === 'cron' && getenv('CRONTASK_ENABLED') === '0') {
+            $this->error('Crontask update disabled');
+            return false;
+        }
+
         $status = [];
 
         $_fetcher = new Fetcher();

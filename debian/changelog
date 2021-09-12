@@ -1,3 +1,11 @@
+ecoparser (0.1.2) stable; urgency=medium
+
+  * [R] Release Candidate
+  * [*] getTableData now order by weight DESC
+  * [+] uncommented cron task at `ecoparser.cron.d`, but it requred `CRONTASK_ENABLED = 1`
+
+ -- Karel Wintersky <karel.wintersky@gmail.com>  Sun, 12 Sep 2021 14:03:43 +0300
+
 ecoparser (0.1.0) stable; urgency=medium
 
   * [R] Release candidate

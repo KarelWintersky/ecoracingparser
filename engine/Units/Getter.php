@@ -62,10 +62,11 @@ class Getter
      */
     public function getSheetData($name)
     {
+        // $orderBy = $_REQUEST['orderBy'];
         $table = self::mapper_spreadsheet_to_table[ $name ];
         $fields = implode(',', self::fields_of_table[$name]);
 
-        $sth = $this->pdo->query("SELECT {$fields} FROM {$table} ORDER BY id");
+        $sth = $this->pdo->query("SELECT {$fields} FROM {$table} ORDER BY weight DESC");
 
         $data = [];
         $head = [];
