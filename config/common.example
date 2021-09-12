@@ -1,0 +1,17 @@
+SERVICE_EMAIL = ''
+SERVICE_ID = ''
+
+# Database settings #
+
+DB.DRIVER       = "mysql"
+DB.HOST         = "127.0.0.1"
+DB.PORT         = 3306
+DB.USERNAME     = "root"
+DB.PASSWORD     = "password"
+DB.NAME         = "ecoparser"
+
+DB.SLOW_QUERY_THRESHOLD = 0.1
+
+
+
+

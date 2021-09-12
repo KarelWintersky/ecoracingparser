@@ -106,11 +106,21 @@ class API
             = DSheets::create($sheet_config['spreadsheet_id'], $gapi_config)
             ->setSheet($sheet_config['list_id']);
 
-        $data = $sheet->get( $sheet_config['range']);
+        $head = $sheet->get( $sheet_config['rangeHead'])[0];
+        $data = $sheet->get( $sheet_config['rangeData']);
+        $amount = $sheet->get ( $sheet_config['rangeAmount'])[0][0];
 
         say(array_merge($this->response, [
-            'name'  =>  $name,
-            'data'  =>  $data
+            'stats'     =>  [
+                'lastUpdate'    =>  date('Y-m-d H:i:s'),
+                'rowsCount'     =>  count($data)
+            ],
+            'head'      =>  [
+                'title'     =>  'Собрано отходов',
+                'amount'    =>  $amount
+            ],
+            'tablehead' =>  $head,
+            'table'     =>  $data
         ]));
 
         /*switch ($name) {
@@ -131,6 +141,10 @@ class API
      */
     public function forceUpdate()
     {
+
+
+
+
         say([
             'status'    =>  'ok'
         ]);
