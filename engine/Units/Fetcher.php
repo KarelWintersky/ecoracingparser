@@ -1,14 +1,20 @@
 <?php
 
-
 namespace EcoParser\Units;
 
-
 use Arris\App;
+use Arris\Path;
 use DigitalStars\Sheets\DSheets;
 use PDO;
 use function EcoParser\loadSpreadSheetConfig;
 
+/**
+ * Class Fetcher
+ *
+ * Юнит-класс импорта данных из гуглотаблицы и вставки их в БД
+ *
+ * @package EcoParser\Units
+ */
 class Fetcher
 {
     const quotes = array("&laquo;", "&raquo;", "&#187;", "&#171;", "«", "»", "'", '"', "&#039;");
@@ -203,10 +209,9 @@ ON DUPLICATE KEY UPDATE weight = weight + :weight, fio = :fio, birthday = :birth
     public function getSheetContent($name, $key = null)
     {
         $sheet_config = loadSpreadSheetConfig( $this->sheets[$name] );
-        $gapi_config = $this->app->get('config')['google_api.config.path'];
+        $gapi_config = Path::create(PATH_CONFIG)->joinName( getenv('SERVICE_ACCOUNT_CONFIG') )->toString();
 
-        $sheet
-            = DSheets::create($sheet_config['spreadsheet_id'], $gapi_config)->setSheet($sheet_config['list_id']);
+        $sheet       = DSheets::create($sheet_config['spreadsheet_id'], $gapi_config)->setSheet($sheet_config['list_id']);
 
         $result = [
             'head'      =>  $sheet->get( $sheet_config['rangeHead'])[0],

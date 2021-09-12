@@ -22,35 +22,7 @@ try {
         'persons'       =>  'sheet_persons.conf'
     ]);
 
-    /*$app->add('sheets', [
-        'markets'   =>  [
-            'spreadsheet_id'    =>  '1I2HPoFo7ApLauvWb1SnuwCiOr1onqqPNxNjt73dALrI',
-            'list_id'           =>  'Лист1',
-            'rangeHead'         =>  'B2:E2',
-            'rangeAmount'       =>  'E1',
-            'rangeData'         =>  'B3:E10000',
-            'title'             =>  'Экогонка сотрудники магазинов МЕГА 2021'
-        ],
-        'educational'   =>  [
-            'spreadsheet_id'    =>  '1_yICjeY_YONTwCdwd2LQGIwyCghTD7TK5i4MFQPq8tg',
-            'list_id'           =>  'Лист1',
-            'rangeHead'         =>  'A2:C2',
-            'rangeAmount'       =>  'C1',
-            'rangeData'         =>  'A3:C10000',
-            'title'             =>  'Экогонка 2021 для учебных заведений'
-        ],
-        'persons'       =>  [
-            'spreadsheet_id'    =>  '1gCS2McfwT0xpKmkFZy1PGnVlz2LbWaDxfI75m1JZVdQ',
-            'list_id'           =>  'Лист1',
-            'rangeHead'         =>  'A2:D2',
-            'rangeAmount'       =>  'D1',
-            'rangeData'         =>  'A3:D10000',
-            'title'             =>  'Экогонка 2021 физлиц'
-        ],
-    ]);*/
-    $app->add('config', [
-        'google_api.config.path'    =>  dirname(__DIR__, 1) . '/config/service_account.json',
-    ]);
+    $app->add('config', []);
 
     // $app('sheets', 'xxx');
 
