@@ -4,8 +4,8 @@ namespace EcoParser;
 
 use Arris\App;
 use DigitalStars\Sheets\DSheets;
+use Dotenv\Dotenv;
 use PDO;
-use function EcoParser\say;
 
 class API
 {
@@ -16,7 +16,7 @@ class API
     private $app;
 
     /**
-     * Конфигурация листов
+     * Конфигурация листов (значения - конфиг-файлы)
      *
      * @var array
      */
@@ -34,23 +34,18 @@ class API
      */
     private $response;
 
-    /**
-     * Общая конфигурация
-     *
-     * @var array
-     */
-    private $config;
-
     public function __construct()
     {
-        $app = $this->app = App::factory();
+        $this->app = App::factory();
         $this->sheets = $this->app->get('sheets');
+
         $this->pdo = $this->app->get('pdo');
         $this->datasheets = $this->app->get('sheets');
 
         $this->response = [
             'version'   =>  '1.0',
             'title'     =>  'GoogleSheets EcoParser API',
+            'calledAt'  =>  self::dtNow(),
         ];
     }
 
@@ -99,16 +94,12 @@ class API
             return false;
         }
 
-        $sheet_config = $this->sheets[$name];
-        $gapi_config = $this->app->get('config')['google_api.config.path'];
-
-        $sheet
-            = DSheets::create($sheet_config['spreadsheet_id'], $gapi_config)
-            ->setSheet($sheet_config['list_id']);
-
-        $head = $sheet->get( $sheet_config['rangeHead'])[0];
-        $data = $sheet->get( $sheet_config['rangeData']);
-        $amount = $sheet->get ( $sheet_config['rangeAmount'])[0][0];
+        // since PHP 7.1
+        list(
+            'head' => $head,
+            'data'  =>  $data,
+            'amount'    => $amount
+            ) = $this->getSheetContent($name);
 
         say(array_merge($this->response, [
             'stats'     =>  [
@@ -137,26 +128,35 @@ class API
     }
 
     /**
-     * Force Update данных по таблицам в БД
+     * Force Update данных из гугл-таблиц в таблицы БД
      */
     public function forceUpdate()
     {
+        $status = [];
 
+        $status['market'] = [
+            'rows'      =>  $this->forceUpdateMarket(),
+            'timestamp' =>  self::dtNow()
+        ];
 
+        $status['educational'] = [
+            'rows'      =>  $this->forceUpdateEducational(),
+            'timestamp' =>  self::dtNow()
+        ];
 
+        $status['persons'] = [
+            'rows'      =>  $this->forceUpdatePersons(),
+            'timestamp' =>  self::dtNow()
+        ];
 
-        say([
-            'status'    =>  'ok'
-        ]);
-
+        say(array_merge($this->response, [
+            'updateStatus'  =>  $status
+        ]));
     }
 
     /**
      * Статистика
      */
-    public function getStats()
-    {
-
-    }
+    public function getStats() {    }
 
 }
