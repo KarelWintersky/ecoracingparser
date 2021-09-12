@@ -4,11 +4,36 @@
 namespace EcoParser\Units;
 
 
+use Arris\App;
 use DigitalStars\Sheets\DSheets;
+use PDO;
+use function EcoParser\loadSpreadSheetConfig;
 
 class Fetcher
 {
     const quotes = array("&laquo;", "&raquo;", "&#187;", "&#171;", "«", "»", "'", '"', "&#039;");
+
+    /**
+     * @var App
+     */
+    private $app;
+
+    /**
+     * @var array
+     */
+    private $sheets;
+
+    /**
+     * @var array|mixed|null
+     */
+    private $pdo;
+
+    public function __construct()
+    {
+        $this->app = App::factory();
+        $this->sheets = $this->app->get('sheets');
+        $this->pdo = $this->app->get('pdo');
+    }
 
     public function forceUpdateMarket()
     {
@@ -177,7 +202,7 @@ ON DUPLICATE KEY UPDATE weight = weight + :weight, fio = :fio, birthday = :birth
      */
     public function getSheetContent($name, $key = null)
     {
-        $sheet_config = $this->loadSpreadSheetConfig( $this->sheets[$name] );
+        $sheet_config = loadSpreadSheetConfig( $this->sheets[$name] );
         $gapi_config = $this->app->get('config')['google_api.config.path'];
 
         $sheet

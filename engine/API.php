@@ -5,6 +5,7 @@ namespace EcoParser;
 use Arris\App;
 use DigitalStars\Sheets\DSheets;
 use Dotenv\Dotenv;
+use EcoParser\Units\Fetcher;
 use PDO;
 
 class API
@@ -38,14 +39,12 @@ class API
     {
         $this->app = App::factory();
         $this->sheets = $this->app->get('sheets');
-
         $this->pdo = $this->app->get('pdo');
-        $this->datasheets = $this->app->get('sheets');
 
         $this->response = [
             'version'   =>  '1.0',
             'title'     =>  'GoogleSheets EcoParser API',
-            'calledAt'  =>  self::dtNow(),
+            'calledAt'  =>  dtNow(),
         ];
     }
 
@@ -94,12 +93,14 @@ class API
             return false;
         }
 
+        $_fetcher = new Fetcher();
+
         // since PHP 7.1
         list(
             'head' => $head,
             'data'  =>  $data,
             'amount'    => $amount
-            ) = $this->getSheetContent($name);
+            ) = $_fetcher->getSheetContent($name);
 
         say(array_merge($this->response, [
             'stats'     =>  [
@@ -128,25 +129,29 @@ class API
     }
 
     /**
+     * Endpoint /forceUpdate
+     *
      * Force Update данных из гугл-таблиц в таблицы БД
      */
     public function forceUpdate()
     {
         $status = [];
 
+        $_fetcher = new Fetcher();
+
         $status['market'] = [
-            'rows'      =>  $this->forceUpdateMarket(),
-            'timestamp' =>  self::dtNow()
+            'rows'      =>  $_fetcher->forceUpdateMarket(),
+            'timestamp' =>  dtNow()
         ];
 
         $status['educational'] = [
-            'rows'      =>  $this->forceUpdateEducational(),
-            'timestamp' =>  self::dtNow()
+            'rows'      =>  $_fetcher->forceUpdateEducational(),
+            'timestamp' =>  dtNow()
         ];
 
         $status['persons'] = [
-            'rows'      =>  $this->forceUpdatePersons(),
-            'timestamp' =>  self::dtNow()
+            'rows'      =>  $_fetcher->forceUpdatePersons(),
+            'timestamp' =>  dtNow()
         ];
 
         say(array_merge($this->response, [
