@@ -10,13 +10,19 @@ use Dotenv\Dotenv;
 require_once dirname(__DIR__, 1) . '/vendor/autoload.php';
 
 try {
-    define('PATH_ENV', dirname(__DIR__, 1) . '/config/');
-    Dotenv::create( PATH_ENV, 'common.conf' )->load();
+    define('PATH_CONFIG', dirname(__DIR__, 1) . '/config/');
+    Dotenv::create( PATH_CONFIG, 'common.conf' )->load();
 
     $app = App::factory();
     $app->add('json', []);
 
     $app->add('sheets', [
+        'markets'       =>  'sheet_markets.conf',
+        'educational'   =>  'sheet_educational.conf',
+        'persons'       =>  'sheet_persons.conf'
+    ]);
+
+    /*$app->add('sheets', [
         'markets'   =>  [
             'spreadsheet_id'    =>  '1I2HPoFo7ApLauvWb1SnuwCiOr1onqqPNxNjt73dALrI',
             'list_id'           =>  'Лист1',
@@ -41,9 +47,9 @@ try {
             'rangeData'         =>  'A3:D10000',
             'title'             =>  'Экогонка 2021 физлиц'
         ],
-    ]);
+    ]);*/
     $app->add('config', [
-        'google_api.config.path'    =>  dirname(__DIR__, 1) . '/config/ecoparser-384f4c127530.json',
+        'google_api.config.path'    =>  dirname(__DIR__, 1) . '/config/service_account.json',
     ]);
 
     // $app('sheets', 'xxx');
