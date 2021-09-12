@@ -1,1 +1,10 @@
 /vendor/
+/config/
+
+/debian/ecoparser
+/debian/.debhelper
+/debian/*.log
+/debian/ecoparser.substvars
+
+build-stamp
+configure-stamp
