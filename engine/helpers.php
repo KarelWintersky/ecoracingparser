@@ -8,16 +8,18 @@ use Dotenv\Dotenv;
  * @param $data
  */
 function say($data) {
-    \Arris\App::factory()->set('json', $data);
+    (\Arris\App::factory())->set('json', $data);
 }
 
 /**
- * Возвращает текущую метку времени строкой
+ * Возвращает текущую метку времени строкой (если не передан таймштамп)
  *
+ * @param null $ts
  * @return string
  */
-function dtNow():string {
-    return date('Y-m-d H:i:s');
+function dtNow($ts = null):string {
+    $format = 'Y-m-d H:i:s';
+    return is_null($ts) ? date($format) : date($format, $ts);
 }
 
 /**
@@ -36,4 +38,21 @@ function loadSpreadSheetConfig($filename) {
         'rangeData'         =>  getenv('rangeData'),
         'title'             =>  getenv('title')
     ];
+}
+
+/**
+ * Очищает строку от спецсимволов, кавычек и прочего. Используется для построения "ключевой" строки.
+ *
+ * @param string $input
+ * @return string
+ */
+function stringToKey(string $input):string
+{
+    $quotes = array("&laquo;", "&raquo;", "&#187;", "&#171;", "«", "»", "'", '"', "&#039;");
+
+    $s = trim($input);
+    $s = strip_tags($s);
+    $s = str_replace($quotes, '', $s);
+    $s = mb_strtoupper($s);
+    return $s;
 }

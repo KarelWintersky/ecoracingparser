@@ -1,3 +1,14 @@
+ecoparser (0.1.0) stable; urgency=medium
+
+  * [R] Release candidate
+  * [+] Fetcher данных через маппинг полей
+  * [+] Getter данных из БД
+  * [*] возможность использовать первую строчку получаемых из БД данных как заголовки
+  * [+] реализованы все эндпоинты + написана по ним документация
+  * [*] упрощение кода индекса
+
+ -- Karel Wintersky <karel.wintersky@gmail.com>  Sun, 12 Sep 2021 07:38:30 +0300
+
 ecoparser (0.0.4) unstable; urgency=medium
 
   * Initial debianised release

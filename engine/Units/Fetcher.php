@@ -7,6 +7,7 @@ use Arris\Path;
 use DigitalStars\Sheets\DSheets;
 use PDO;
 use function EcoParser\loadSpreadSheetConfig;
+use function EcoParser\stringToKey;
 
 /**
  * Class Fetcher
@@ -17,8 +18,6 @@ use function EcoParser\loadSpreadSheetConfig;
  */
 class Fetcher
 {
-    const quotes = array("&laquo;", "&raquo;", "&#187;", "&#171;", "«", "»", "'", '"', "&#039;");
-
     /**
      * @var App
      */
@@ -30,7 +29,7 @@ class Fetcher
     private $sheets;
 
     /**
-     * @var array|mixed|null
+     * @var PDO
      */
     private $pdo;
 
@@ -43,6 +42,20 @@ class Fetcher
 
     public function forceUpdateMarket()
     {
+        /**
+         * Зачем нужен маппер?
+         *
+         * Он сопоставляет ИМЯ поля и НОМЕР этого поля во входных данных.
+         * Визуально удобнее проверять/получать значение поля по ИМЕНИ, а не по НОМЕРУ. Ниже шанс ошибки.
+         *
+         * Красивее было бы сделать маппер через stdClass и вызывать $mapper->fio; но это лишний код и ненужный уровень абстракции
+         */
+        $mapper = [
+            'fio'       =>  1,
+            'workplace' =>  2,
+            'weight'    =>  3
+        ];
+
         list(
             'head' => $head,
             'data'  =>  $data,
@@ -50,20 +63,23 @@ class Fetcher
             ) = $this->getSheetContent('markets');
 
         $filtred_data = [];
+        $total_weight = 0;
 
         foreach ($data as $row) {
             // валидируем значения (примитивный способ, обрезка начальных/конечных пробелов, приведение числа к целому, проверка на пустоту)
             // если какое-то из значений после приведения пустое - пропускаем строку
-            if (empty(trim($row[1]))) continue 1;
-            if (empty(trim($row[2]))) continue 1;
-            if (empty((int)trim($row[3]))) continue 1;
+            if (empty(trim($row[ $mapper['fio'] ]))) continue 1;
+            if (empty(trim($row[ $mapper['workplace'] ]))) continue 1;
+            if (empty((int)trim($row[ $mapper['weight'] ]))) continue 1;
+
+            $total_weight += (int)$row[ $mapper['weight'] ];
 
             $filtred_data[] = [
-                'fio'       =>  $row[1],
-                'workplace' =>  $row[2],
-                'weight'    =>  (int)$row[3],
-                'key_fio'   =>  self::stringToKey($row[1]),
-                'key_workplace' => self::stringToKey($row[2])
+                'fio'       =>  $row[ $mapper['fio'] ],
+                'workplace' =>  $row[ $mapper['workplace'] ],
+                'weight'    =>  (int)$row[ $mapper['weight'] ],
+                'key_fio'   =>  stringToKey($row[ $mapper['fio']]),
+                'key_workplace' => stringToKey($row[ $mapper['workplace'] ])
             ];
         }
 
@@ -74,7 +90,7 @@ class Fetcher
         $this->pdo->beginTransaction();
 
         try {
-            $this->pdo->query("TRUNCATE TABLE markets");
+            $this->pdo->exec("TRUNCATE TABLE markets");
             foreach ($filtred_data as $row) {
                 $sth = $this->pdo->prepare("
 INSERT INTO markets (fio, workplace, weight, key_fio, key_workplace) VALUES(:fio, :workplace, :weight, :key_fio, :key_workplace) 
@@ -86,17 +102,32 @@ ON DUPLICATE KEY UPDATE weight = weight + :weight, fio = :fio, workplace = :work
                 $sth->bindValue('weight', $row['weight'], PDO::PARAM_INT);
                 $sth->execute();
             }
-            $this->pdo->exec("INSERT INTO last_update (`key`, `value`) VALUES ('markets', NOW()) ON DUPLICATE KEY UPDATE `value` = NOW() ");
+            $sth_lu = $this->pdo->prepare("
+INSERT INTO last_update (`list`, `dt`, `rows`, `total_weight`) VALUES ('markets', NOW(), :r, :total_weight) ON DUPLICATE KEY UPDATE `dt` = NOW(), `rows` = :r, `total_weight` = :total_weight 
+");
+            $sth_lu->bindValue('r', count($filtred_data), PDO::PARAM_INT);
+            $sth_lu->bindValue('total_weight', $total_weight, PDO::PARAM_INT);
+            $sth_lu->execute();
+
         } catch (\PDOException $e) {
             $this->pdo->rollBack();
+            throw new \RuntimeException($e->getMessage(), $e->getCode());
         }
         $this->pdo->commit();
 
         return count($filtred_data);
     }
 
+    /**
+     * @return int
+     */
     public function forceUpdateEducational()
     {
+        $mapper = [
+            'title'     =>  1,
+            'weight'    =>  2
+        ];
+
         list(
             'head' => $head,
             'data'  =>  $data,
@@ -104,17 +135,20 @@ ON DUPLICATE KEY UPDATE weight = weight + :weight, fio = :fio, workplace = :work
             ) = $this->getSheetContent('educational');
 
         $filtred_data = [];
+        $total_weight = 0;
 
         foreach ($data as $row) {
             // валидируем значения (примитивный способ, обрезка начальных/конечных пробелов, приведение числа к целому, проверка на пустоту)
             // если какое-то из значений после приведения пустое - пропускаем строку
-            if (empty(trim($row[1]))) continue 1;
-            if (empty((int)trim($row[2]))) continue 1;
+            if (empty(trim($row[ $mapper['title'] ]))) continue 1;
+            if (empty((int)trim($row[ $mapper['weight'] ]))) continue 1;
+
+            $total_weight += (int)$row[ $mapper['weight'] ];
 
             $filtred_data[] = [
-                'title'         =>  $row[1],
-                'weight'        =>  (int)$row[2],
-                'key_title'     =>  self::stringToKey($row[1]),
+                'title'         =>  $row[ $mapper['title'] ],
+                'weight'        =>  (int)$row[ $mapper['weight'] ],
+                'key_title'     =>  stringToKey($row[ $mapper['title'] ]),
             ];
         }
 
@@ -135,17 +169,35 @@ ON DUPLICATE KEY UPDATE weight = weight + :weight, title = :title");
                 $sth->bindValue('weight', $row['weight'], PDO::PARAM_INT);
                 $sth->execute();
             }
-            $this->pdo->exec("INSERT INTO last_update (`key`, `value`) VALUES ('educational', NOW()) ON DUPLICATE KEY UPDATE `value` = NOW() ");
+
+            $sth_lu = $this->pdo->prepare("
+INSERT INTO last_update (`list`, `dt`, `rows`, `total_weight`) VALUES ('educational', NOW(), :r, :total_weight) ON DUPLICATE KEY UPDATE `dt` = NOW(), `rows` = :r, `total_weight` = :total_weight 
+");
+            $sth_lu->bindValue('r', count($filtred_data), PDO::PARAM_INT);
+            $sth_lu->bindValue('total_weight', $total_weight, PDO::PARAM_INT);
+            $sth_lu->execute();
+
         } catch (\PDOException $e) {
             $this->pdo->rollBack();
+            throw new \RuntimeException($e->getMessage(), $e->getCode());
         }
         $this->pdo->commit();
 
         return count($filtred_data);
     }
 
+    /**
+     *
+     * @return int
+     */
     public function forceUpdatePersons()
     {
+        $mapper = [
+            'fio'       =>  1,
+            'birthday'  =>  2,
+            'weight'    =>  3
+        ];
+
         list(
             'head' => $head,
             'data'  =>  $data,
@@ -153,20 +205,23 @@ ON DUPLICATE KEY UPDATE weight = weight + :weight, title = :title");
             ) = $this->getSheetContent('persons');
 
         $filtred_data = [];
+        $total_weight = 0;
 
         foreach ($data as $row) {
             // валидируем значения (примитивный способ, обрезка начальных/конечных пробелов, приведение числа к целому, проверка на пустоту)
             // если какое-то из значений после приведения пустое - пропускаем строку
-            if (empty(trim($row[1]))) continue 1;
-            if (empty(trim($row[2]))) continue 1;
-            if (empty((int)trim($row[3]))) continue 1;
+            if (empty(trim($row[ $mapper['fio'] ]))) continue 1;
+            if (empty(trim($row[ $mapper['birthday'] ]))) continue 1;
+            if (empty((int)trim($row[ $mapper['weight']  ]))) continue 1;
+
+            $total_weight += (int)$row[ $mapper['weight'] ];
 
             $filtred_data[] = [
-                'fio'           =>  $row[1],
-                'birthday'      =>  $row[2],
-                'weight'        =>  (int)$row[2],
-                'key_fio'       =>  self::stringToKey($row[1]),
-                'key_birthday'  =>  self::stringToKey($row[2]),
+                'fio'           =>  $row[ $mapper['fio'] ],
+                'birthday'      =>  $row[ $mapper['birthday'] ],
+                'weight'        =>  (int)$row[ $mapper['weight'] ],
+                'key_fio'       =>  stringToKey($row[ $mapper['fio'] ]),
+                'key_birthday'  =>  stringToKey($row[ $mapper['birthday'] ]),
             ];
         }
 
@@ -177,7 +232,7 @@ ON DUPLICATE KEY UPDATE weight = weight + :weight, title = :title");
         $this->pdo->beginTransaction();
 
         try {
-            $this->pdo->query("TRUNCATE TABLE persons");
+            $this->pdo->exec("TRUNCATE TABLE persons");
             foreach ($filtred_data as $row) {
                 $sth = $this->pdo->prepare("
 INSERT INTO persons (fio, birthday, weight, key_fio, key_birthday) VALUES(:fio, :birthday, :weight, :key_fio, :key_birthday) 
@@ -189,11 +244,19 @@ ON DUPLICATE KEY UPDATE weight = weight + :weight, fio = :fio, birthday = :birth
                 $sth->bindValue('weight', $row['weight'], PDO::PARAM_INT);
                 $sth->execute();
             }
-            $this->pdo->exec("INSERT INTO last_update (`key`, `value`) VALUES ('persons', NOW()) ON DUPLICATE KEY UPDATE `value` = NOW() ");
+
+            $sth_lu = $this->pdo->prepare("
+INSERT INTO last_update (`list`, `dt`, `rows`, `total_weight`) VALUES ('persons', NOW(), :r, :total_weight) ON DUPLICATE KEY UPDATE `dt` = NOW(), `rows` = :r, `total_weight` = :total_weight 
+");
+            $sth_lu->bindValue('r', count($filtred_data), PDO::PARAM_INT);
+            $sth_lu->bindValue('total_weight', $total_weight, PDO::PARAM_INT);
+            $sth_lu->execute();
+
         } catch (\PDOException $e) {
             $this->pdo->rollBack();
-            dd($e->getMessage());
+            throw new \RuntimeException($e->getMessage(), $e->getCode());
         }
+
         $this->pdo->commit();
 
         return count($filtred_data);
@@ -222,21 +285,6 @@ ON DUPLICATE KEY UPDATE weight = weight + :weight, fio = :fio, birthday = :birth
         return  !is_null($key)
             ? $result[$key]
             : $result;
-    }
-
-    /**
-     * Очищает строку от спецсимволов, кавычек и прочего. Используется для построения "ключевой" строки.
-     *
-     * @param string $input
-     * @return string
-     */
-    private static function stringToKey(string $input):string
-    {
-        $s = trim($input);
-        $s = strip_tags($s);
-        $s = str_replace(self::quotes, '', $s);
-        $s = mb_strtoupper($s);
-        return $s;
     }
 
 

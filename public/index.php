@@ -44,7 +44,8 @@ try {
     AppRouter::init(AppLogger::addScope('router'));
     AppRouter::setDefaultNamespace('\EcoParser');
 
-    AppRouter::get('/', 'API@about');
+    AppRouter::get('/', 'API@about', 'root');
+    AppRouter::get('/about', 'API@about', 'about');
     AppRouter::get('/getTableData', 'API@getTableData');
     AppRouter::get('/getTableData/{name}', 'API@getTableData');
     AppRouter::get('/forceUpdate', 'API@forceUpdate');
@@ -57,6 +58,6 @@ try {
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode($app->get('json') , JSON_PRETTY_PRINT);
+echo json_encode($app->get('json') , JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
 die;

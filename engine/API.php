@@ -6,6 +6,7 @@ use Arris\App;
 use DigitalStars\Sheets\DSheets;
 use Dotenv\Dotenv;
 use EcoParser\Units\Fetcher;
+use EcoParser\Units\Getter;
 use PDO;
 
 class API
@@ -43,13 +44,14 @@ class API
 
         $this->response = [
             'version'   =>  '1.0',
-            'title'     =>  'GoogleSheets EcoParser API',
+            'title'     =>  'EcoRacing GoogleSheets Parser API',
             'calledAt'  =>  dtNow(),
         ];
     }
 
     /**
-     * API Endpoint /
+     * @endpoint: /
+     * @endpoint: /about
      *
      * @return void
      */
@@ -59,7 +61,7 @@ class API
     }
 
     /**
-     * Error
+     * @endpoint: ERROR
      *
      * @param string $message
      * @return void
@@ -75,7 +77,11 @@ class API
     }
 
     /**
+     * @endpoint: /getTableData/{name}
+     * @endpoint: /getTableData
+     *
      * Получить данные таблицы по NAME
+     *
      * @param string|null $name
      * @return bool
      */
@@ -93,43 +99,35 @@ class API
             return false;
         }
 
-        $_fetcher = new Fetcher();
+        $_getter = new Getter();
 
         // since PHP 7.1
         list(
-            'head' => $head,
-            'data'  =>  $data,
-            'amount'    => $amount
-            ) = $_fetcher->getSheetContent($name);
+            'head'          =>  $head,
+            'data'          =>  $data,
+            'total_weight'  =>  $total_weight,
+            'rows'          =>  $total_rows,
+            'last_update'   =>  $last_update
+            ) = $_getter->getSheetData($name);
 
         say(array_merge($this->response, [
             'stats'     =>  [
-                'lastUpdate'    =>  date('Y-m-d H:i:s'),
-                'rowsCount'     =>  count($data)
+                'lastUpdate'    =>  $last_update,
+                'rowsCount'     =>  $total_rows
             ],
             'head'      =>  [
-                'title'     =>  'Собрано отходов',
-                'amount'    =>  $amount
+                'title'         =>  'Собрано отходов',
+                'total_weight'  =>  $total_weight
             ],
             'tablehead' =>  $head,
             'table'     =>  $data
         ]));
 
-        /*switch ($name) {
-            case 'markets': {
-                break;
-            }
-            case 'educational': {
-                break;
-            }
-            case 'persons': {
-                break;
-            }
-        }*/
+        return true;
     }
 
     /**
-     * Endpoint /forceUpdate
+     * @endpoint /forceUpdate
      *
      * Force Update данных из гугл-таблиц в таблицы БД
      */
@@ -160,8 +158,15 @@ class API
     }
 
     /**
+     * @endpoint: /getStats
+     *
      * Статистика
      */
-    public function getStats() {    }
+    public function getStats()
+    {
+        say(array_merge($this->response, [
+            'stats' =>  (new Getter())->getStats()
+        ]));
+    }
 
 }

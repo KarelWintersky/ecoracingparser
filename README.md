@@ -59,10 +59,12 @@ CREATE TABLE `persons` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `last_update` (
-  `key` varchar(100) DEFAULT NULL,
-  `value` datetime DEFAULT NULL,
-  UNIQUE KEY `last_update_key_IDX` (`key`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `list` varchar(100) DEFAULT NULL,
+  `dt` datetime DEFAULT NULL,
+  `rows` int(11) DEFAULT NULL,
+  `total_weight` int(11) DEFAULT NULL,
+  UNIQUE KEY `last_update_key_IDX` (`list`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 
 ```
 
