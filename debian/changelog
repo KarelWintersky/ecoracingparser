@@ -1,3 +1,9 @@
+ecoparser (0.1.3) stable; urgency=medium
+
+  * [*] обновление по крону делается раз в час
+
+ -- Karel Wintersky <karel.wintersky@gmail.com>  Sun, 12 Sep 2021 14:10:48 +0300
+
 ecoparser (0.1.2) stable; urgency=medium
 
   * [R] Release Candidate
