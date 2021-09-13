@@ -3,8 +3,6 @@
 namespace EcoParser;
 
 use Arris\App;
-use DigitalStars\Sheets\DSheets;
-use Dotenv\Dotenv;
 use EcoParser\Units\Fetcher;
 use EcoParser\Units\Getter;
 use PDO;
@@ -47,6 +45,8 @@ class API
             'title'     =>  'EcoRacing GoogleSheets Parser API',
             'calledAt'  =>  dtNow(),
         ];
+
+        // AppLogger::scope('router')->notice('Requested ... <getting rule implemented since 1.70.1+');
     }
 
     /**
